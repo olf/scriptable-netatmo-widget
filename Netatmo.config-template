@@ -1,0 +1,6 @@
+module.exports = {
+  app_id: "... insert app id ...",
+  app_secret: "... insert app secret ...",
+  username: "... insert username ...",
+  password: "... insert password ...",
+}
