@@ -1,7 +1,7 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: blue; icon-glyph: umbrella;
-function createWidget(moduleName, moduleData) {
+function createWidget(moduleName, moduleData, temperature_unit) {
   let widget = new ListWidget()
 
   widget.backgroundColor = Color.black()
@@ -16,7 +16,9 @@ function createWidget(moduleName, moduleData) {
 
   // Temperature
 
-  let temperature = widget.addText("" + moduleData.Temperature + "°C")
+  let temperature = widget.addText(
+    "" + moduleData.Temperature + temperature_unit
+  )
   temperature.font = Font.regularSystemFont(24)
   temperature.textColor = Color.white()
   temperature.centerAlignText()
@@ -28,8 +30,8 @@ function createWidget(moduleName, moduleData) {
   if ("CO2" in moduleData) {
     co2value = moduleData.CO2
 
-    let co2 = widget.addText("CO₂: " + co2value)
-    co2.font = Font.regularSystemFont(18)
+    let co2 = widget.addText("CO₂: " + co2value + " ppm")
+    co2.font = Font.regularSystemFont(16)
     co2.centerAlignText()
 
     co2.textColor = Color.green()
@@ -86,13 +88,15 @@ async function getData(token) {
 }
 
 function getModuleData(moduleName, data) {
-  device = data.devices[0]
+  const device = data.devices[0]
 
   if (device.module_name === moduleName) {
     return device.dashboard_data
   }
 
-  modules = device.modules.filter((item) => item.module_name === moduleName)
+  const modules = device.modules.filter(
+    (item) => item.module_name === moduleName
+  )
 
   if (modules.length === 0) {
     return {}
@@ -109,20 +113,29 @@ let token = await authenticate(
   netatmoConfig.username,
   netatmoConfig.password
 )
-
 let data = await getData(token)
+
+temperature_unit = data.user.administrative.unit === 0 ? "°C" : "°F"
 
 if (config.runsInApp) {
   // For in-app testing
   const module_name = "Indoor"
 
-  let widget = createWidget(module_name, getModuleData(module_name, data))
+  let widget = createWidget(
+    module_name,
+    getModuleData(module_name, data),
+    temperature_unit
+  )
 
   widget.presentSmall()
 } else {
   let parameter = args.widgetParameter
 
-  let widget = createWidget(parameter, getModuleData(parameter, data))
+  let widget = createWidget(
+    parameter,
+    getModuleData(parameter, data),
+    temperature_unit
+  )
 
   Script.setWidget(widget)
 }
